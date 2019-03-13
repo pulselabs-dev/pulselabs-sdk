@@ -9,9 +9,8 @@ export class HttpService {
    */
 
   postData(data: any) {
-    request({
-      url: 'https://http-reqbin.herokuapp.com/1bbozy51',
-      method: 'POST',
+    request.post({
+      url: 'https://http-reqbin.herokuapp.com/1p2uobb1',
       json: true,
       body: data
     });

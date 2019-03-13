@@ -1,5 +1,6 @@
-import PulseLabsSdk = require('./pulse-labs-sdk');
+
 import { requestObject, responseObject } from './test-helpers/request-envelope';
+import PulseLabsSdk = require('../pulse-labs-sdk');
 
 describe("PulseLabsSdk", () => {
   let pulseLabsSdk: PulseLabsSdk;
@@ -23,7 +24,6 @@ describe("PulseLabsSdk", () => {
     const data = {
       request: requestObject,
       response: responseObject,
-      skillType: 'AlexaSdk'
     };
     (pulseLabsSdk as any).handleResponse(handlerInput);
     expect(httpService.postData).toHaveBeenCalledTimes(1);
@@ -36,11 +36,11 @@ describe("PulseLabsSdk", () => {
     expect((pulseLabsSdk as any).isInitialised()).toEqual(true);
   });
 
-  describe("sendRequestResponseData", () => {
+  describe("logOutgoingMessage", () => {
     it("should call isInitialised and throw error if isInitialised return false", (done) => {
       const isInitialisedSpy = jest.spyOn((pulseLabsSdk as any), "isInitialised").mockReturnValue(false);
       try {
-        pulseLabsSdk.sendRequestResponseData(requestObject, responseObject);
+        pulseLabsSdk.logOutgoingMessage(requestObject, responseObject);
         done.fail();
       } catch(e) {
         expect(isInitialisedSpy).toHaveBeenCalledTimes(1);
@@ -51,16 +51,37 @@ describe("PulseLabsSdk", () => {
       const data = {
         request: requestObject,
         response: responseObject,
-        skillType: 'Lambda'
       };
       (pulseLabsSdk as any).isInitialised = jest.fn().mockReturnValue(true);
-      pulseLabsSdk.sendRequestResponseData(requestObject, responseObject);
+      pulseLabsSdk.logOutgoingMessage(requestObject, responseObject);
       expect(httpService.postData).toHaveBeenCalledTimes(1);
       expect(httpService.postData).toHaveBeenCalledWith(data);
     });
   });
 
-  describe("addAlexaInterceptor", () => {
+  describe("logIncomingMessage", () => {
+    it("should call isInitialised and throw error if isInitialised return false", (done) => {
+      const isInitialisedSpy = jest.spyOn((pulseLabsSdk as any), "isInitialised").mockReturnValue(false);
+      try {
+        pulseLabsSdk.logIncomingMessage(requestObject);
+        done.fail();
+      } catch(e) {
+        expect(isInitialisedSpy).toHaveBeenCalledTimes(1);
+        done();
+      }
+    });
+    it("should call isInitialised and call postData if isInitialised return true", () => {
+      const data = {
+        request: requestObject,
+      };
+      (pulseLabsSdk as any).isInitialised = jest.fn().mockReturnValue(true);
+      pulseLabsSdk.logIncomingMessage(requestObject);
+      expect(httpService.postData).toHaveBeenCalledTimes(1);
+      expect(httpService.postData).toHaveBeenCalledWith(data);
+    });
+  });
+
+  describe("attachInterceptor", () => {
     let skillBuilderClass: any;
     beforeEach(() => {
       skillBuilderClass = {
@@ -70,7 +91,7 @@ describe("PulseLabsSdk", () => {
     it("should call isInitialised and throw error if isInitialised return false", (done) => {
       const isInitialisedSpy = jest.spyOn((pulseLabsSdk as any), "isInitialised").mockReturnValue(false);
       try {
-        pulseLabsSdk.addAlexaInterceptor(skillBuilderClass);
+        pulseLabsSdk.attachInterceptor(skillBuilderClass);
         done.fail();
       } catch(e) {
         expect(isInitialisedSpy).toHaveBeenCalledTimes(1);
@@ -80,7 +101,7 @@ describe("PulseLabsSdk", () => {
 
     it("should call addResponseInterceptors method with correct parameter if isInitialised return true", () => {
       (pulseLabsSdk as any).isInitialised = jest.fn().mockReturnValue(true);
-      pulseLabsSdk.addAlexaInterceptor(skillBuilderClass);
+      pulseLabsSdk.attachInterceptor(skillBuilderClass);
       expect(skillBuilderClass.addResponseInterceptors).toHaveBeenCalledTimes(1);
     });
   });

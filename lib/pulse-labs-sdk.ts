@@ -1,7 +1,5 @@
 import { HttpService } from './http.service';
 import { CustomSkillBuilder, HandlerInput } from 'ask-sdk-core';
-import * as http from "http";
-import { RequestListener } from "http";
 
 class PulseLabsSdk {
   private static _instance: PulseLabsSdk;
@@ -38,7 +36,7 @@ class PulseLabsSdk {
    *
    */
 
-  addAlexaInterceptor(skillBuilderClass: CustomSkillBuilder) {
+  attachInterceptor(skillBuilderClass: CustomSkillBuilder) {
     if(!this.isInitialised()) {
       throw new Error("Please call init function with api key before adding interceptor for your skill");
     }
@@ -46,70 +44,27 @@ class PulseLabsSdk {
   }
 
   /**
-   * This function is responsible for intercepting request , response object for self hosted node skills
-   *
-   * @param endPoints defines which routes to intercept. An empty array intercepts all the request sent on server
-   *
+   * This method is called to send request to the pulselabs server.
+   * Called in case when using lambda function or standalone node application
+   * @param requestBody -> The requestBody sent by alexa
    */
 
-  addNodeInterceptor(endPoints: string[] = []) {
-    if(!this.isInitialised()) {
-      throw new Error("Please call init function with api key before adding interceptor for your skill");
-    }
-    const oldCreateServer = http.createServer;
-    (http as any).createServer = (callback: RequestListener) => {
-      return oldCreateServer((req, res) => {
-        if(!endPoints.length || endPoints.find(endpoint => endpoint === req.url)) {
-          let request: any, response;
-          let reqBody = '';
-          req.on('data', chunk => {
-            reqBody += chunk;
-          });
-          req.on('end', () => {
-            try{
-              request = JSON.parse(reqBody);
-            } catch (e) {
-              throw new Error('Something unexpected occurred while processing incoming request');
-            }
-          });
-
-          let resBody = '';
-          const oldWrite = res.write;
-          res.write = (...args:any) => {
-            resBody +=args[0];
-            return oldWrite.apply(res, args);
-          };
-
-          const oldEnd = res.end;
-          res.end = (...args : any) => {
-            if(args[0]) {
-              resBody +=args[0];
-            }
-            try {
-              response = JSON.parse(resBody);
-              let data = {
-                request: request,
-                response: response,
-                skillType: 'SelfHosted'
-              };
-              this.httpService.postData(data);
-            } catch (e) {
-              throw new Error('Something unexpected occurred while processing outgoing response');
-            }
-            return oldEnd.apply(res, args);
-          };
-        }
-        return callback(req,res);
-      });
-    };
-  }
-
   logIncomingMessage(requestBody: any) {
+    let data = {
+      request: requestBody
+    };
     if(!this.isInitialised()) {
       throw new Error("Please call init function with api key before sending the data");
     }
-    this.httpService.postData(requestBody);
+    this.httpService.postData(data);
   }
+
+  /**
+   * This method is called to send request and response data to the pulselabs server.
+   * Called in case when using lambda function or standalone node application
+   * @param requestBody -> The requestBody sent by alexa
+   * @param response -> The response sent by user
+   */
 
   logOutgoingMessage(requestBody: any, response: any) {
     if(!this.isInitialised()) {
@@ -117,31 +72,9 @@ class PulseLabsSdk {
     }
     let data = {
       request: requestBody,
-      response: response
+      response: response,
     };
     this.httpService.postData(data)
-  }
-  /**
-   * This method is called for skills generated using lambda function but without using alexa sdk
-   *
-   * Must be called every time before sending response
-   *
-   * @param request -> The request object provided by amazon server
-   *
-   * @param response -> The response object sent by the user in response to alexa request
-   *
-   */
-
-  sendRequestResponseData(request: any, response: any) {
-    if(!this.isInitialised()) {
-      throw new Error("Please call init function with api key before sending the data");
-    }
-    let data = {
-      request: request,
-      response: response,
-      skillType: 'Lambda'
-    };
-    this.httpService.postData(data);
   }
 
   /**
@@ -164,7 +97,6 @@ class PulseLabsSdk {
     let data: any = {};
     data['request'] = handlerInput.requestEnvelope;
     data['response'] = handlerInput.responseBuilder.getResponse();
-    data['skillType'] = 'AlexaSdk';
     this.httpService.postData(data);
   }
 
