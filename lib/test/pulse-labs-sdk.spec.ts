@@ -12,7 +12,7 @@ describe("PulseLabsSdk", () => {
     pulseLabsSdk = new pulseLabdsSdkClass(httpService);
   });
 
-  it('handleResponse should call postData method with correct data', () => {
+  it('handleOutgoingResponse should call logOutgoingMessage method with correct data', () => {
     const handlerInput = {
       requestEnvelope: requestObject,
       responseBuilder: {
@@ -21,13 +21,22 @@ describe("PulseLabsSdk", () => {
         }
       }
     };
-    const data = {
-      request: requestObject,
-      response: responseObject,
+    (pulseLabsSdk as any).isInitialised = jest.fn().mockReturnValue(true);
+    const outgoingSpy = jest.spyOn(pulseLabsSdk, "logOutgoingMessage");
+    (pulseLabsSdk as any).handleOutgoingResponse(handlerInput);
+    expect(outgoingSpy).toHaveBeenCalledTimes(1);
+    expect(outgoingSpy).toHaveBeenCalledWith(requestObject, responseObject);
+  });
+
+  it('handleIncomingRequest should call logIncomingMessage method with correct data', () => {
+    const handlerInput = {
+      requestEnvelope: requestObject,
     };
-    (pulseLabsSdk as any).handleResponse(handlerInput);
-    expect(httpService.postData).toHaveBeenCalledTimes(1);
-    expect(httpService.postData).toHaveBeenCalledWith(data);
+    (pulseLabsSdk as any).isInitialised = jest.fn().mockReturnValue(true);
+    const incomingSpy = jest.spyOn(pulseLabsSdk, "logIncomingMessage");
+    (pulseLabsSdk as any).handleIncomingRequest(handlerInput);
+    expect(incomingSpy).toHaveBeenCalledTimes(1);
+    expect(incomingSpy).toHaveBeenCalledWith(requestObject);
   });
 
   it("isInitialised should return a boolean value according to the value of apiKey", () => {
@@ -85,7 +94,8 @@ describe("PulseLabsSdk", () => {
     let skillBuilderClass: any;
     beforeEach(() => {
       skillBuilderClass = {
-        addResponseInterceptors: jest.fn()
+        addResponseInterceptors: jest.fn(),
+        addRequestInterceptors: jest.fn()
       }
     });
     it("should call isInitialised and throw error if isInitialised return false", (done) => {
@@ -99,9 +109,10 @@ describe("PulseLabsSdk", () => {
       }
     });
 
-    it("should call addResponseInterceptors method with correct parameter if isInitialised return true", () => {
+    it("should call addResponseInterceptors and addRequestInterceptor method if isInitialised return true", () => {
       (pulseLabsSdk as any).isInitialised = jest.fn().mockReturnValue(true);
       pulseLabsSdk.attachInterceptor(skillBuilderClass);
+      expect(skillBuilderClass.addRequestInterceptors).toHaveBeenCalledTimes(1);
       expect(skillBuilderClass.addResponseInterceptors).toHaveBeenCalledTimes(1);
     });
   });

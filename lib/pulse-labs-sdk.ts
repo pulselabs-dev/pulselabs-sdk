@@ -40,7 +40,8 @@ class PulseLabsSdk {
     if(!this.isInitialised()) {
       throw new Error("Please call init function with api key before adding interceptor for your skill");
     }
-    skillBuilderClass.addResponseInterceptors(this.handleResponse.bind(this));
+    skillBuilderClass.addRequestInterceptors(this.handleIncomingRequest.bind(this));
+    skillBuilderClass.addResponseInterceptors(this.handleOutgoingResponse.bind(this));
   }
 
   /**
@@ -87,17 +88,28 @@ class PulseLabsSdk {
   }
 
   /**
+   * This method handles sending of request body for skills build using alexaSdk
+   *
+   * @param handlerInput passed to the response interceptors by alexa, can be used to get the request and response object
+   *
+   */
+
+  private handleIncomingRequest(handlerInput: HandlerInput) {
+    let requestBody = handlerInput.requestEnvelope;
+    this.logIncomingMessage(requestBody);
+  }
+
+  /**
    * This method handles sending of response for skills build using alexaSdk
    *
    * @param handlerInput passed to the response interceptors by alexa, can be used to get the request and response object
    *
    */
 
-  private handleResponse(handlerInput: HandlerInput) {
-    let data: any = {};
-    data['request'] = handlerInput.requestEnvelope;
-    data['response'] = handlerInput.responseBuilder.getResponse();
-    this.httpService.postData(data);
+  private handleOutgoingResponse(handlerInput: HandlerInput) {
+    let requestBody = handlerInput.requestEnvelope;
+    let response = handlerInput.responseBuilder.getResponse();
+    this.logOutgoingMessage(requestBody, response);
   }
 
 }
