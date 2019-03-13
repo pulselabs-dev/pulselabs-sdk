@@ -5,17 +5,34 @@
   "main": "dist/pulse-labs-sdk.js",
   "types": "dist/pulse-labs-sdk.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "jest": "^24.4.0",
+    "ts-jest": "^24.0.0",
     "typescript": "^3.3.3333"
   },
   "dependencies": {
+    "@types/jest": "^24.0.11",
     "@types/request": "^2.48.1",
     "ask-sdk-core": "^2.4.0",
     "ask-sdk-model": "^1.11.2",
     "request": "^2.88.0"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json"
+    ]
   }
 }

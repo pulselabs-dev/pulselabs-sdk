@@ -39,7 +39,7 @@ class PulseLabsSdk {
    */
 
   addAlexaInterceptor(skillBuilderClass: CustomSkillBuilder) {
-    if(!this.isInitialised) {
+    if(!this.isInitialised()) {
       throw new Error("Please call init function with api key before adding interceptor for your skill");
     }
     skillBuilderClass.addResponseInterceptors(this.handleResponse.bind(this));
@@ -53,7 +53,7 @@ class PulseLabsSdk {
    */
 
   addNodeInterceptor(endPoints: string[] = []) {
-    if(!this.isInitialised) {
+    if(!this.isInitialised()) {
       throw new Error("Please call init function with api key before adding interceptor for your skill");
     }
     const oldCreateServer = http.createServer;
@@ -104,6 +104,23 @@ class PulseLabsSdk {
     };
   }
 
+  logIncomingMessage(requestBody: any) {
+    if(!this.isInitialised()) {
+      throw new Error("Please call init function with api key before sending the data");
+    }
+    this.httpService.postData(requestBody);
+  }
+
+  logOutgoingMessage(requestBody: any, response: any) {
+    if(!this.isInitialised()) {
+      throw new Error("Please call init function with api key before sending the data");
+    }
+    let data = {
+      request: requestBody,
+      response: response
+    };
+    this.httpService.postData(data)
+  }
   /**
    * This method is called for skills generated using lambda function but without using alexa sdk
    *
@@ -116,7 +133,7 @@ class PulseLabsSdk {
    */
 
   sendRequestResponseData(request: any, response: any) {
-    if(!this.isInitialised) {
+    if(!this.isInitialised()) {
       throw new Error("Please call init function with api key before sending the data");
     }
     let data = {
