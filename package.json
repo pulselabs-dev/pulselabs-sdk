@@ -1,6 +1,6 @@
 {
-  "name": "pulselabs-sdk",
-  "version": "1.0.1",
+  "name": "random-name-sdk",
+  "version": "0.0.9",
   "description": "A nodejs library to intercept request and response sent by Alexa skill",
   "main": "dist/pulse-labs-sdk.js",
   "types": "dist/pulse-labs-sdk.d.ts",

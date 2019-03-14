@@ -1,5 +1,5 @@
 import { HttpService } from './http.service';
-import { CustomSkillBuilder, HandlerInput } from 'ask-sdk-core';
+import { LambdaHandler } from 'ask-sdk-core/dist/skill/factory/BaseSkillFactory';
 
 class PulseLabsSdk {
   private static _instance: PulseLabsSdk;
@@ -28,20 +28,21 @@ class PulseLabsSdk {
   }
 
   /**
-   * This method is responsible for sending the request, response data for skills build using alexa Sdk
-   *
-   * Uses addResponseInterceptors method of skillBuilderClass defined by alexa
-   *
-   * @param skillBuilderClass -> the object to which the interceptor is to be attached
-   *
+   * This method sends the request and response data to the pulselabs website for skills developed using alexa sdk
+   * Return type -> A LambdaHandler function
+   * @param lambdaHandler -> The lambda handler returned by the alexa sdk .lambda() method
    */
 
-  attachInterceptor(skillBuilderClass: CustomSkillBuilder) {
-    if(!this.isInitialised()) {
-      throw new Error("Please call init function with api key before adding interceptor for your skill");
-    }
-    skillBuilderClass.addRequestInterceptors(this.handleIncomingRequest.bind(this));
-    skillBuilderClass.addResponseInterceptors(this.handleOutgoingResponse.bind(this));
+  handler(lambdaHandler: LambdaHandler): LambdaHandler {
+    return (requestEnv, context, callback) => {
+      const requestPromise = this.logIncomingMessage(requestEnv);
+      lambdaHandler(requestEnv, context, (error, result) => {
+        const responsePromise = this.logOutgoingMessage(requestEnv, result);
+        Promise.all([requestPromise, responsePromise]).finally(() => {
+          callback(error, result);
+        });
+      });
+    };
   }
 
   /**
@@ -50,14 +51,14 @@ class PulseLabsSdk {
    * @param requestBody -> The requestBody sent by alexa
    */
 
-  logIncomingMessage(requestBody: any) {
+  logIncomingMessage(requestBody: any): Promise<any> {
     let data = {
       request: requestBody
     };
     if(!this.isInitialised()) {
       throw new Error("Please call init function with api key before sending the data");
     }
-    this.httpService.postData(data);
+    return this.httpService.postData(data);
   }
 
   /**
@@ -67,7 +68,7 @@ class PulseLabsSdk {
    * @param response -> The response sent by user
    */
 
-  logOutgoingMessage(requestBody: any, response: any) {
+  logOutgoingMessage(requestBody: any, response: any): Promise<any> {
     if(!this.isInitialised()) {
       throw new Error("Please call init function with api key before sending the data");
     }
@@ -75,7 +76,7 @@ class PulseLabsSdk {
       request: requestBody,
       response: response,
     };
-    this.httpService.postData(data)
+    return this.httpService.postData(data);
   }
 
   /**
@@ -85,31 +86,6 @@ class PulseLabsSdk {
 
   private isInitialised() {
     return !!this.apiKey;
-  }
-
-  /**
-   * This method handles sending of request body for skills build using alexaSdk
-   *
-   * @param handlerInput passed to the response interceptors by alexa, can be used to get the request and response object
-   *
-   */
-
-  private handleIncomingRequest(handlerInput: HandlerInput) {
-    let requestBody = handlerInput.requestEnvelope;
-    this.logIncomingMessage(requestBody);
-  }
-
-  /**
-   * This method handles sending of response for skills build using alexaSdk
-   *
-   * @param handlerInput passed to the response interceptors by alexa, can be used to get the request and response object
-   *
-   */
-
-  private handleOutgoingResponse(handlerInput: HandlerInput) {
-    let requestBody = handlerInput.requestEnvelope;
-    let response = handlerInput.responseBuilder.getResponse();
-    this.logOutgoingMessage(requestBody, response);
   }
 
 }
