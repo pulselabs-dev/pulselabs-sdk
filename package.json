@@ -1,6 +1,6 @@
 {
   "name": "random-name-sdk",
-  "version": "0.0.9",
+  "version": "0.0.11",
   "description": "A nodejs library to intercept request and response sent by Alexa skill",
   "main": "dist/pulse-labs-sdk.js",
   "types": "dist/pulse-labs-sdk.d.ts",
@@ -11,13 +11,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/jest": "^24.0.11",
+    "@types/request": "^2.48.1",
     "jest": "^24.4.0",
     "ts-jest": "^24.0.0",
     "typescript": "^3.3.3333"
   },
   "dependencies": {
-    "@types/jest": "^24.0.11",
-    "@types/request": "^2.48.1",
     "ask-sdk-core": "^2.4.0",
     "ask-sdk-model": "^1.11.2",
     "request": "^2.88.0"

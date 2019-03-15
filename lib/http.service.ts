@@ -11,7 +11,7 @@ export class HttpService {
   postData(data: any) : Promise<any> {
     return new Promise((resolve, reject) => {
       request.post({
-        url: 'https://http-reqbin.herokuapp.com/1p2uobb1',
+        url: 'https://http-reqbin.herokuapp.com/y32kxpy3',
         json: true,
         body: data
       }, (error, response, body) => {
