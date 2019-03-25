@@ -19,11 +19,11 @@ describe("PulseLabsSdk", () => {
     expect((pulseLabsSdk as any).isInitialised()).toEqual(true);
   });
 
-  describe("logOutgoingMessage", () => {
+  describe("log", () => {
     it("should call isInitialised and throw error if isInitialised return false", (done) => {
       const isInitialisedSpy = jest.spyOn((pulseLabsSdk as any), "isInitialised").mockReturnValue(false);
       try {
-        pulseLabsSdk.logOutgoingMessage(requestObject, responseObject);
+        pulseLabsSdk.log(requestObject, responseObject);
         done.fail();
       } catch(e) {
         expect(isInitialisedSpy).toHaveBeenCalledTimes(1);
@@ -36,7 +36,7 @@ describe("PulseLabsSdk", () => {
         response: responseObject,
       };
       (pulseLabsSdk as any).isInitialised = jest.fn().mockReturnValue(true);
-      pulseLabsSdk.logOutgoingMessage(requestObject, responseObject);
+      pulseLabsSdk.log(requestObject, responseObject);
       expect(httpService.postData).toHaveBeenCalledTimes(1);
       expect(httpService.postData).toHaveBeenCalledWith(data);
     });
@@ -51,14 +51,14 @@ describe("PulseLabsSdk", () => {
     });
 
     it("should call logOutgoingMessage and the original callback when callback is called", async () => {
-      pulseLabsSdk.logOutgoingMessage = jest.fn().mockResolvedValue("");
+      pulseLabsSdk.log = jest.fn().mockResolvedValue("");
       const callback = jest.fn();
       const lambdaHandler = jest.fn();
       const returnedFunction = pulseLabsSdk.handler(lambdaHandler);
       returnedFunction({} as RequestEnvelope, {}, callback);
       const callBackToHandler = lambdaHandler.mock.calls[0][2];
       await callBackToHandler();
-      expect(pulseLabsSdk.logOutgoingMessage).toHaveBeenCalledTimes(1);
+      expect(pulseLabsSdk.log).toHaveBeenCalledTimes(1);
       expect(callback).toHaveBeenCalledTimes(1);
     });
 

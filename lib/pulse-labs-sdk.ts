@@ -36,7 +36,7 @@ class PulseLabsSdk {
   handler(lambdaHandler: LambdaHandler): LambdaHandler {
     return (requestEnv, context, callback) => {
       lambdaHandler(requestEnv, context, (error, result) => {
-        this.logOutgoingMessage(requestEnv, result).finally(() => {
+        this.log(requestEnv, result).finally(() => {
           callback(error, result);
         });
       });
@@ -50,7 +50,7 @@ class PulseLabsSdk {
    * @param response -> The response sent by user
    */
 
-  logOutgoingMessage(requestBody: any, response: any): Promise<any> {
+  log(requestBody: any, response: any): Promise<any> {
     if(!this.isInitialised()) {
       throw new Error("Please call init function with api key before sending the data");
     }

@@ -18,7 +18,7 @@ export class HttpService {
         if (error) {
           reject('Some error occurred while sending data');
         }
-        resolve('');
+        resolve();
       });
     });
   }
