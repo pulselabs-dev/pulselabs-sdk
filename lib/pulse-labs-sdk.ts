@@ -35,30 +35,12 @@ class PulseLabsSdk {
 
   handler(lambdaHandler: LambdaHandler): LambdaHandler {
     return (requestEnv, context, callback) => {
-      const requestPromise = this.logIncomingMessage(requestEnv);
       lambdaHandler(requestEnv, context, (error, result) => {
-        const responsePromise = this.logOutgoingMessage(requestEnv, result);
-        Promise.all([requestPromise, responsePromise]).finally(() => {
+        this.logOutgoingMessage(requestEnv, result).finally(() => {
           callback(error, result);
         });
       });
     };
-  }
-
-  /**
-   * This method is called to send request to the pulselabs server.
-   * Called in case when using lambda function or standalone node application
-   * @param requestBody -> The requestBody sent by alexa
-   */
-
-  logIncomingMessage(requestBody: any): Promise<any> {
-    let data = {
-      request: requestBody
-    };
-    if(!this.isInitialised()) {
-      throw new Error("Please call init function with api key before sending the data");
-    }
-    return this.httpService.postData(data);
   }
 
   /**

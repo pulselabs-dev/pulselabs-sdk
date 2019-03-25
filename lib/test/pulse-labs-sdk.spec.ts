@@ -1,7 +1,6 @@
-
 import { requestObject, responseObject } from './test-helpers/request-envelope';
 import PulseLabsSdk = require('../pulse-labs-sdk');
-import { LambdaHandler } from 'ask-sdk-core/dist/skill/factory/BaseSkillFactory';
+import { RequestEnvelope } from 'ask-sdk-model';
 
 describe("PulseLabsSdk", () => {
   let pulseLabsSdk: PulseLabsSdk;
@@ -43,26 +42,26 @@ describe("PulseLabsSdk", () => {
     });
   });
 
-  describe("logIncomingMessage", () => {
-    it("should call isInitialised and throw error if isInitialised return false", (done) => {
-      const isInitialisedSpy = jest.spyOn((pulseLabsSdk as any), "isInitialised").mockReturnValue(false);
-      try {
-        pulseLabsSdk.logIncomingMessage(requestObject);
-        done.fail();
-      } catch(e) {
-        expect(isInitialisedSpy).toHaveBeenCalledTimes(1);
-        done();
-      }
+  describe("handler", () => {
+    it("should call original lambdaHandler when the returned function is called", () => {
+      const lambdaHandler = jest.fn();
+      const returnedFunction = pulseLabsSdk.handler(lambdaHandler);
+      returnedFunction({} as RequestEnvelope, {}, () => {});
+      expect(lambdaHandler).toHaveBeenCalledTimes(1);
     });
-    it("should call isInitialised and call postData if isInitialised return true", () => {
-      const data = {
-        request: requestObject,
-      };
-      (pulseLabsSdk as any).isInitialised = jest.fn().mockReturnValue(true);
-      pulseLabsSdk.logIncomingMessage(requestObject);
-      expect(httpService.postData).toHaveBeenCalledTimes(1);
-      expect(httpService.postData).toHaveBeenCalledWith(data);
+
+    it("should call logOutgoingMessage and the original callback when callback is called", async () => {
+      pulseLabsSdk.logOutgoingMessage = jest.fn().mockResolvedValue("");
+      const callback = jest.fn();
+      const lambdaHandler = jest.fn();
+      const returnedFunction = pulseLabsSdk.handler(lambdaHandler);
+      returnedFunction({} as RequestEnvelope, {}, callback);
+      const callBackToHandler = lambdaHandler.mock.calls[0][2];
+      await callBackToHandler();
+      expect(pulseLabsSdk.logOutgoingMessage).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledTimes(1);
     });
+
   });
 
   afterEach(() => {
