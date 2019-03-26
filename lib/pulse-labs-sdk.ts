@@ -4,7 +4,7 @@ import { LambdaHandler } from 'ask-sdk-core/dist/skill/factory/BaseSkillFactory'
 class PulseLabsSdk {
   private static _instance: PulseLabsSdk;
 
-  private apiKey: string | null = null;
+  private apiKey: string = '';
 
   private constructor(private httpService: HttpService) {
   }
@@ -12,16 +12,16 @@ class PulseLabsSdk {
   /**
    * This method is responsible for initialising apiKey and returning an object of class.
    *
-   * Throws error if an object has already been created
+   * Returns the old object if an object has already been created
    *
    * @param apiKey -> The apiKey allotted to the user
    */
 
   static init(apiKey: string): PulseLabsSdk {
     if (this._instance) {
-      throw new Error("Already initialised with an apiKey");
+      return this._instance;
     }
-    // TODO:: send request to pulselabs site to verify apiKey. Once apiKey is verified create object for the class
+
     this._instance = new PulseLabsSdk(new HttpService());
     this._instance.apiKey = apiKey;
     return this._instance;
@@ -51,23 +51,14 @@ class PulseLabsSdk {
    */
 
   log(requestBody: any, response: any): Promise<any> {
-    if(!this.isInitialised()) {
-      throw new Error("Please call init function with api key before sending the data");
-    }
     let data = {
       request: requestBody,
       response: response,
     };
-    return this.httpService.postData(data);
-  }
-
-  /**
-   * This method is responsible for checking if apiKey has been set
-   *
-   */
-
-  private isInitialised() {
-    return !!this.apiKey;
+    return this.httpService.postData(this.apiKey, data).catch(error => {
+      console.log("Pulselabs Sdk error", error);
+      return error;
+    });
   }
 
 }

@@ -5,41 +5,31 @@ import { RequestEnvelope } from 'ask-sdk-model';
 describe("PulseLabsSdk", () => {
   let pulseLabsSdk: PulseLabsSdk;
   let httpService = {
-    postData: jest.fn()
+    postData: jest.fn().mockResolvedValue("")
   };
   beforeEach(() => {
     const pulseLabdsSdkClass = PulseLabsSdk as any;
     pulseLabsSdk = new pulseLabdsSdkClass(httpService);
   });
 
-
-  it("isInitialised should return a boolean value according to the value of apiKey", () => {
-    expect((pulseLabsSdk as any).isInitialised()).toEqual(false);
-    (pulseLabsSdk as any).apiKey = "randomApiKey";
-    expect((pulseLabsSdk as any).isInitialised()).toEqual(true);
-  });
-
   describe("log", () => {
-    it("should call isInitialised and throw error if isInitialised return false", (done) => {
-      const isInitialisedSpy = jest.spyOn((pulseLabsSdk as any), "isInitialised").mockReturnValue(false);
-      try {
-        pulseLabsSdk.log(requestObject, responseObject);
-        done.fail();
-      } catch(e) {
-        expect(isInitialisedSpy).toHaveBeenCalledTimes(1);
-        done();
-      }
-    });
-    it("should call isInitialised and call postData if isInitialised return true", () => {
+    it("should call postData", () => {
+      (pulseLabsSdk as any).apiKey = "secret";
       const data = {
         request: requestObject,
         response: responseObject,
       };
-      (pulseLabsSdk as any).isInitialised = jest.fn().mockReturnValue(true);
       pulseLabsSdk.log(requestObject, responseObject);
       expect(httpService.postData).toHaveBeenCalledTimes(1);
-      expect(httpService.postData).toHaveBeenCalledWith(data);
+      expect(httpService.postData).toHaveBeenCalledWith("secret",data);
     });
+
+    it("should return error returned by postData function if it fails", async() => {
+      httpService.postData = jest.fn().mockRejectedValue("error");
+      let returnVal = await pulseLabsSdk.log(requestObject, responseObject);
+      expect(returnVal).toEqual("error");
+    });
+
   });
 
   describe("handler", () => {

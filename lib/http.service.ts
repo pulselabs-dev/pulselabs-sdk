@@ -8,15 +8,15 @@ export class HttpService {
    This method is responsible for sending all the data that we get from user to pulselabs website.
    */
 
-  postData(data: any) : Promise<any> {
+  postData(apiKey: string, data: any) : Promise<any> {
     return new Promise((resolve, reject) => {
       request.post({
-        url: 'https://http-reqbin.herokuapp.com/w7jjc9w7',
+        url: 'https://http-reqbin.herokuapp.com/rsz7zirt?apiKey='+apiKey,
         json: true,
         body: data
       }, (error, response, body) => {
         if (error) {
-          reject('Some error occurred while sending data');
+          reject(JSON.stringify(error.body));
         }
         resolve();
       });
