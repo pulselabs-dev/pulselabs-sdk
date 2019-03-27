@@ -1,8 +1,8 @@
-import { HttpService } from './http.service';
+import { HttpService } from './services/http.service';
 import { LambdaHandler } from 'ask-sdk-core/dist/skill/factory/BaseSkillFactory';
 
-class PulseLabsSdk {
-  private static _instance: PulseLabsSdk;
+class PulseLabsRecorder {
+  private static _instance: PulseLabsRecorder;
 
   private apiKey: string = '';
 
@@ -17,12 +17,12 @@ class PulseLabsSdk {
    * @param apiKey -> The apiKey allotted to the user
    */
 
-  static init(apiKey: string): PulseLabsSdk {
+  static init(apiKey: string): PulseLabsRecorder {
     if (this._instance) {
       return this._instance;
     }
 
-    this._instance = new PulseLabsSdk(new HttpService());
+    this._instance = new PulseLabsRecorder(new HttpService());
     this._instance.apiKey = apiKey;
     return this._instance;
   }
@@ -36,6 +36,10 @@ class PulseLabsSdk {
   handler(lambdaHandler: LambdaHandler): LambdaHandler {
     return (requestEnv, context, callback) => {
       lambdaHandler(requestEnv, context, (error, result) => {
+        /*
+         *  Finally ensures that the callback is executed irrespective of whether the data is pushed to our backend or not
+         *  We don't want the skill to break due to some issue with our code or server
+         */
         this.log(requestEnv, result).finally(() => {
           callback(error, result);
         });
@@ -56,11 +60,11 @@ class PulseLabsSdk {
       response: response,
     };
     return this.httpService.postData(this.apiKey, data).catch(error => {
-      console.log("Pulselabs Sdk error", error);
+      console.log("Pulse labs Sdk error: ", JSON.stringify(error));
       return error;
     });
   }
 
 }
 
-export = PulseLabsSdk;
+export = PulseLabsRecorder;

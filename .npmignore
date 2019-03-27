@@ -1,6 +1,5 @@
 #ts files
-lib/
-dist/test
+src/
 
 #ide files
 .idea
