@@ -36,11 +36,10 @@ class PulseLabsRecorder {
   handler(lambdaHandler: LambdaHandler): LambdaHandler {
     return (requestEnv, context, callback) => {
       lambdaHandler(requestEnv, context, (error, result) => {
-        /*
-         *  Finally ensures that the callback is executed irrespective of whether the data is pushed to our backend or not
-         *  We don't want the skill to break due to some issue with our code or server
-         */
-        this.log(requestEnv, result).finally(() => {
+
+        this.log(requestEnv, result).then(() => {
+          callback(error, result);
+        }).catch(() => {
           callback(error, result);
         });
       });
