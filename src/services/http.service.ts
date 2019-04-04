@@ -1,6 +1,9 @@
 import * as request from 'request';
+import { ServerData } from '../interfaces/server-data.inetrface';
+import { ConfigService } from './config.service';
 export class HttpService {
-  constructor() {
+
+  constructor(private configService:ConfigService) {
 
   }
 
@@ -8,12 +11,13 @@ export class HttpService {
    This method is responsible for sending all the data that we get from user to pulselabs website.
    */
 
-  postData(apiKey: string, data: any) : Promise<any> {
+  postData(data: ServerData) : Promise<any> {
     return new Promise((resolve, reject) => {
       request.post({
-        url: 'https://http-reqbin.herokuapp.com/rsz7zirt?apiKey='+apiKey,
+        url: 'https://http-reqbin.herokuapp.com/1nu7usu1',
         json: true,
-        body: data
+        body: data,
+        timeout: this.configService.timeout
       }, (error, response, body) => {
         if (error) {
           reject(JSON.stringify(error.body));
