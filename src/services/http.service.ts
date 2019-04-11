@@ -14,7 +14,7 @@ export class HttpService {
   postData(data: ServerData) : Promise<any> {
     return new Promise((resolve, reject) => {
       request.post({
-        url: 'https://http-reqbin.herokuapp.com/1nu7usu1',
+        url: 'https://sdkapi.pulselabs.ai/api/sdk/v1/conversations',
         json: true,
         body: data,
         timeout: this.configService.timeout
