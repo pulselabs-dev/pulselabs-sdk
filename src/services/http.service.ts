@@ -14,7 +14,7 @@ export class HttpService {
   postData(data: ServerData) : Promise<any> {
     return new Promise((resolve, reject) => {
       request.post({
-        url: 'https://sdkapi.pulselabs.ai/api/sdk/v1/conversations',
+        url: 'https://sdkapi.pulselabs.ai/api/sdk/v1/conversations/alexa',
         json: true,
         body: data,
         timeout: this.configService.timeout
