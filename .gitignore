@@ -54,8 +54,61 @@ typings/
 # Yarn Integrity file
 .yarn-integrity
 
+# target directory
+dist/
+
 # dotenv environment variables file
 .env
 
 # next.js build output
 .next
+
+
+######################
+# IDE
+######################
+.vscode/
+.idea/
+
+######################
+# Others
+######################
+*.class
+*.*~
+*~
+.merge_file*
+
+######################
+# Jest Test Runner
+######################
+coverage/
+
+######################
+# Windows
+######################
+# Windows image file caches
+Thumbs.db
+
+# Folder config file
+Desktop.ini
+
+######################
+# Mac OSX
+######################
+.DS_Store
+.svn
+
+# Thumbnails
+._*
+
+######################
+# Node
+######################
+/node/
+node_tmp/
+npm-debug.log.*
+
+######################
+# Project Specific
+######################
+/dist/**
