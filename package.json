@@ -1,6 +1,6 @@
 {
-  "name": "random-name-sdk",
-  "version": "0.0.38",
+  "name": "pulselabs-recorder",
+  "version": "1.0.1",
   "description": "A nodejs library to intercept request and response sent by Alexa skill",
   "main": "dist/pulse-labs-recorder.js",
   "types": "dist/pulse-labs-recorder.d.ts",
@@ -8,7 +8,16 @@
     "build": "tsc",
     "test": "jest"
   },
-  "author": "",
+  "author": "Pulse Labs",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pulselabs-dev/pulselabs-sdk/issues"
+  },
+  "homepage": "https://github.com/pulselabs-dev/pulselabs-sdk#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pulselabs-dev/pulselabs-sdk.git"
+  },
   "devDependencies": {
     "@types/jest": "24.0.11",
     "@types/request": "2.48.1",
