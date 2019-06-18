@@ -12,7 +12,8 @@ describe("PulseLabsRecorder", () => {
     logMessage: jest.fn()
   };
   let configService = {
-    apiKey: 'randomKey'
+    apiKey: 'randomKey',
+    integrationType: ''
   };
   beforeEach(() => {
     const pulseLabsRecorderClass = PulseLabsRecorder as any;
