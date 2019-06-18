@@ -63,17 +63,10 @@ class PulseLabsRecorder {
    */
 
   logData(requestBody: any, response: any): Promise<any> {
-    const isHostedOnAWS = !!(process.env.LAMBDA_TASK_ROOT || process.env.AWS_EXECUTION_ENV);
-    let integrationType:IntegrationType;
-    if(isHostedOnAWS) {
-      integrationType = IntegrationType.LAMBDA;
-    } else {
-      integrationType = IntegrationType.REST_SERVER;
-    }
-    return this.sendDataToServer(requestBody, response, integrationType);
+    return this.sendDataToServer(requestBody, response, this.getIntegrationType());
   }
 
-  private sendDataToServer(request:any, response: any, integrationType:IntegrationType) {
+  private sendDataToServer(request:any, response: any, integrationType:string) {
     const date = new Date().toJSON().slice(0,10);
     let data: ServerData = {
       timeSent: Date.now(),
@@ -95,6 +88,21 @@ class PulseLabsRecorder {
       this.logger.logMessage('Pulse labs Sdk error: ', JSON.stringify(error));
       return error;
     });
+  }
+
+  private getIntegrationType(): string {
+    let integrationType:string;
+    if(this.configService.integrationType !== '') {
+      integrationType = this.configService.integrationType;
+    } else {
+      const isHostedOnAWS = !!(process.env.LAMBDA_TASK_ROOT || process.env.AWS_EXECUTION_ENV);
+      if(isHostedOnAWS) {
+        integrationType = IntegrationType.LAMBDA;
+      } else {
+        integrationType = IntegrationType.REST_SERVER;
+      }
+    }
+    return integrationType;
   }
 }
 
