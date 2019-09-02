@@ -12,7 +12,7 @@ pulselabs-recorder is available via NPM.
 npm install pulselabs-recorder --save
 ```
 
-Follow the instructions at [https://www.pulselabs.ai/app/#/client/documentation](https://www.pulselabs.ai/app/#/client/documentation)
+Follow the instructions at [https://dashboard.pulselabs.ai/client/documentation](https://dashboard.pulselabs.ai/client/documentation)
 
 ## Configuration Options
 Additional configuration options are available when importing the pulselabs-recorder module. The configuration options are passed through via a config object in the init call. 
