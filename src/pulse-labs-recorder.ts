@@ -76,7 +76,7 @@ class PulseLabsRecorder {
     const pulseSerialize = conv.serialize;
     conv.serialize = () => {
       const response = pulseSerialize.call(conv);
-      this.sendDataToServer(conv.request, response, '', 'google');
+      this.sendDataToServer(conv.request, response, this.getIntegrationType(), 'google');
       return response;
     };
   }
@@ -114,8 +114,12 @@ class PulseLabsRecorder {
       integrationType = this.configService.integrationType;
     } else {
       const isHostedOnAWS = !!(process.env.LAMBDA_TASK_ROOT || process.env.AWS_EXECUTION_ENV);
+      const isHostedOnGoogleCloud = !!process.env.GCLOUD_PROJECT;
+
       if(isHostedOnAWS) {
         integrationType = IntegrationType.LAMBDA;
+      } else if (isHostedOnGoogleCloud) {
+        integrationType = IntegrationType.GOOGLE_CLOUD;
       } else {
         integrationType = IntegrationType.REST_SERVER;
       }
