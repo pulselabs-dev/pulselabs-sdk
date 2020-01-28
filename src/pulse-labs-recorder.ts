@@ -5,6 +5,7 @@ import { IntegrationType } from './enums/integration-type.enum';
 import { ServerData } from './interfaces/server-data.inetrface';
 import { ConfigService } from './services/config.service';
 import { InitOptions } from './interfaces/init-options.interface';
+import { DialogflowConversation } from "actions-on-google";
 
 class PulseLabsRecorder {
   private static _instance: PulseLabsRecorder;
@@ -66,14 +67,31 @@ class PulseLabsRecorder {
     return this.sendDataToServer(requestBody, response, this.getIntegrationType());
   }
 
-  private sendDataToServer(request:any, response: any, integrationType:string) {
+  /**
+   * This method is called to send request and response
+   * data to the pulselabs server for google action.
+   * @param conv -> a DialogFlowConversation object
+   */
+  configureActionLogger(conv: DialogflowConversation) {
+    const pulseSerialize = conv.serialize;
+    conv.serialize = () => {
+      const response = pulseSerialize.call(conv);
+      this.sendDataToServer(conv.request, response, '', 'google');
+      return response;
+    };
+  }
+
+  private sendDataToServer(request: any,
+                           response: any,
+                           integrationType: string,
+                           platform = 'alexa') {
     const date = new Date().toJSON().slice(0,10);
     let data: ServerData = {
       timeSent: Date.now(),
       date: date,
       sdkPrivateKey: this.configService.apiKey,
       integration: integrationType,
-      platform: 'alexa',
+      platform: platform,
       payload: {
         request: request,
         response: response
