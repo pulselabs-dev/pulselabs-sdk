@@ -76,7 +76,7 @@ class PulseLabsRecorder {
     const pulseSerialize = conv.serialize;
     conv.serialize = () => {
       const response = pulseSerialize.call(conv);
-      this.sendDataToServer(conv.request, response, this.getIntegrationType(), 'google');
+      this.sendDataToServer(conv.body, response, IntegrationType.GOOGLE_SDK, 'google');
       return response;
     };
   }
@@ -118,8 +118,6 @@ class PulseLabsRecorder {
 
       if(isHostedOnAWS) {
         integrationType = IntegrationType.LAMBDA;
-      } else if (isHostedOnGoogleCloud) {
-        integrationType = IntegrationType.GOOGLE_CLOUD;
       } else {
         integrationType = IntegrationType.REST_SERVER;
       }

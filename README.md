@@ -1,4 +1,4 @@
-# [Pulselabs Recorder](https://www.pulselabs.ai) - Analytics for your alexa skill
+# [Pulselabs Recorder](https://www.pulselabs.ai) - Analytics for your alexa skill & Google Action
 
 SDK to record & replay voice interactions for tests conducted on pulse labs platform
 
