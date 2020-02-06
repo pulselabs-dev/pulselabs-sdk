@@ -1,10 +1,12 @@
-import { HttpService } from './services/http.service';
+import { DialogflowConversation } from "actions-on-google";
 import { LambdaHandler } from 'ask-sdk-core/dist/skill/factory/BaseSkillFactory';
-import { LoggerService } from './services/logger.service';
 import { IntegrationType } from './enums/integration-type.enum';
+import { Platform } from "./enums/platform.enum";
+import { InitOptions } from './interfaces/init-options.interface';
 import { ServerData } from './interfaces/server-data.inetrface';
 import { ConfigService } from './services/config.service';
-import { InitOptions } from './interfaces/init-options.interface';
+import { HttpService } from './services/http.service';
+import { LoggerService } from './services/logger.service';
 
 class PulseLabsRecorder {
   private static _instance: PulseLabsRecorder;
@@ -66,14 +68,31 @@ class PulseLabsRecorder {
     return this.sendDataToServer(requestBody, response, this.getIntegrationType());
   }
 
-  private sendDataToServer(request:any, response: any, integrationType:string) {
+  /**
+   * This method is called to send request and response
+   * data to the pulselabs server for google action.
+   * @param conv -> a DialogFlowConversation object
+   */
+  configureActionLogger(conv: DialogflowConversation) {
+    const pulseSerialize = conv.serialize;
+    conv.serialize = () => {
+      const response = pulseSerialize.call(conv);
+      this.sendDataToServer(conv.body, response, IntegrationType.GOOGLE_SDK, Platform.Google);
+      return response;
+    };
+  }
+
+  private sendDataToServer(request: any,
+                           response: any,
+                           integrationType: string,
+                           platform = Platform.Alexa) {
     const date = new Date().toJSON().slice(0,10);
     let data: ServerData = {
       timeSent: Date.now(),
       date: date,
       sdkPrivateKey: this.configService.apiKey,
       integration: integrationType,
-      platform: 'alexa',
+      platform: platform,
       payload: {
         request: request,
         response: response
@@ -81,7 +100,7 @@ class PulseLabsRecorder {
     };
 
     this.logger.logMessage('[Sending request and response data] ',JSON.stringify(data));
-    return this.httpService.postData(data).then((res) => {
+    return this.httpService.postData(data, platform).then((res) => {
       this.logger.logMessage('Data sent to Pulse labs server');
       return res;
     }).catch(error => {
@@ -96,8 +115,12 @@ class PulseLabsRecorder {
       integrationType = this.configService.integrationType;
     } else {
       const isHostedOnAWS = !!(process.env.LAMBDA_TASK_ROOT || process.env.AWS_EXECUTION_ENV);
+      const isHostedOnGoogleCloud = !!process.env.GCLOUD_PROJECT;
+
       if(isHostedOnAWS) {
         integrationType = IntegrationType.LAMBDA;
+      } else if (isHostedOnGoogleCloud) {
+        integrationType = IntegrationType.GOOGLE_CLOUD;
       } else {
         integrationType = IntegrationType.REST_SERVER;
       }
