@@ -16,6 +16,10 @@ export class HttpService {
   postData(data: ServerData, platform: Platform) : Promise<any> {
     return fetch(`https://sdkapi.pulselabs.ai/api/sdk/v1/conversations/${platform}`, {
       method: "POST",
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify(data),
       timeout: this.configService.timeout
     }).catch(error => {
