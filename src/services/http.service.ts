@@ -1,7 +1,8 @@
-import * as request from 'request';
 import { Platform } from "../enums/platform.enum";
 import { ServerData } from '../interfaces/server-data.inetrface';
 import { ConfigService } from './config.service';
+import fetch from "node-fetch";
+
 export class HttpService {
 
   constructor(private configService:ConfigService) {
@@ -13,18 +14,12 @@ export class HttpService {
    */
 
   postData(data: ServerData, platform: Platform) : Promise<any> {
-    return new Promise((resolve, reject) => {
-      request.post({
-        url: `https://sdkapi.pulselabs.ai/api/sdk/v1/conversations/${platform}`,
-        json: true,
-        body: data,
-        timeout: this.configService.timeout
-      }, (error, response, body) => {
-        if (error) {
-          reject(JSON.stringify(error.body));
-        }
-        resolve();
-      });
+    return fetch(`https://sdkapi.pulselabs.ai/api/sdk/v1/conversations/${platform}`, {
+      method: "POST",
+      body: JSON.stringify(data),
+      timeout: this.configService.timeout
+    }).catch(error => {
+      throw JSON.stringify(error.body);
     });
   }
 }
