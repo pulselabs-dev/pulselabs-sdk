@@ -1,7 +1,8 @@
-import * as request from 'request';
 import { Platform } from "../enums/platform.enum";
 import { ServerData } from '../interfaces/server-data.inetrface';
 import { ConfigService } from './config.service';
+import fetch from "node-fetch";
+
 export class HttpService {
 
   constructor(private configService:ConfigService) {
@@ -12,19 +13,23 @@ export class HttpService {
    This method is responsible for sending all the data that we get from user to pulselabs website.
    */
 
-  postData(data: ServerData, platform: Platform) : Promise<any> {
-    return new Promise((resolve, reject) => {
-      request.post({
-        url: `https://sdkapi.pulselabs.ai/api/sdk/v1/conversations/${platform}`,
-        json: true,
-        body: data,
-        timeout: this.configService.timeout
-      }, (error, response, body) => {
-        if (error) {
-          reject(JSON.stringify(error.body));
-        }
-        resolve();
-      });
+  async postData(data: ServerData, platform: Platform) : Promise<any> {
+    const fetchResult = await fetch(`https://sdkapi.pulselabs.ai/api/sdk/v1/conversations/${platform}`, {
+      method: "POST",
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data),
+      timeout: this.configService.timeout
     });
+
+    const jsonResponse = await fetchResult.json();
+
+    if (fetchResult.ok) {
+      return jsonResponse;
+    } else {
+      throw jsonResponse
+    }
   }
 }
