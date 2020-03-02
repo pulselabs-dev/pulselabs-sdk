@@ -81,6 +81,27 @@ class PulseLabsRecorder {
   }
 
   /**
+   * This method is called to send request and response data to the pulselabs server.
+   * Called in case of nodejs webhook for actions on google
+   * @param requestBody -> The requestBody sent by alexa
+   * @param response -> The response sent by user
+   */
+
+  logGoogleData(
+    requestBody: any,
+    response: any,
+    userId?: string
+  ): Promise<any> {
+    return this.sendDataToServer(
+      requestBody,
+      response,
+      this.getIntegrationType(),
+      Platform.Google,
+      userId
+    );
+  }
+
+  /**
    * This method is called to send request and response
    * data to the pulselabs server for google action.
    * @param conv -> a DialogFlowConversation object
