@@ -1,18 +1,21 @@
+import { ConfigService } from "./services/config.service";
 import { DialogflowConversation } from "actions-on-google";
-import { LambdaHandler } from 'ask-sdk-core/dist/skill/factory/BaseSkillFactory';
-import { IntegrationType } from './enums/integration-type.enum';
+import { HttpService } from "./services/http.service";
+import { InitOptions } from "./interfaces/init-options.interface";
+import { IntegrationType } from "./enums/integration-type.enum";
+import { LambdaHandler } from "ask-sdk-core/dist/skill/factory/BaseSkillFactory";
+import { LoggerService } from "./services/logger.service";
 import { Platform } from "./enums/platform.enum";
-import { InitOptions } from './interfaces/init-options.interface';
-import { ServerData } from './interfaces/server-data.inetrface';
-import { ConfigService } from './services/config.service';
-import { HttpService } from './services/http.service';
-import { LoggerService } from './services/logger.service';
+import { ServerData } from "./interfaces/server-data.inetrface";
 
 class PulseLabsRecorder {
   private static _instance: PulseLabsRecorder;
 
-  private constructor(private httpService: HttpService, private logger: LoggerService, private configService:ConfigService) {
-  }
+  private constructor(
+    private httpService: HttpService,
+    private logger: LoggerService,
+    private configService: ConfigService
+  ) {}
 
   /**
    * This method is responsible for initialising apiKey and returning an object of class.
@@ -22,18 +25,21 @@ class PulseLabsRecorder {
    * @param apiKey -> The apiKey allotted to the user
    */
 
-  static init(apiKey: string, initOptions?:InitOptions): PulseLabsRecorder {
-
+  static init(apiKey: string, initOptions?: InitOptions): PulseLabsRecorder {
     if (this._instance) {
       return this._instance;
     }
 
-    let configService = new ConfigService({...initOptions, apiKey: apiKey});
+    let configService = new ConfigService({ ...initOptions, apiKey: apiKey });
     let httpService = new HttpService(configService);
     let loggerService = new LoggerService(configService);
 
-    this._instance = new PulseLabsRecorder(httpService, loggerService, configService);
-    loggerService.logMessage('pulse labs recorder initialised');
+    this._instance = new PulseLabsRecorder(
+      httpService,
+      loggerService,
+      configService
+    );
+    loggerService.logMessage("pulse labs recorder initialised");
     return this._instance;
   }
 
@@ -45,14 +51,16 @@ class PulseLabsRecorder {
 
   handler(lambdaHandler: LambdaHandler): LambdaHandler {
     return (requestEnv, context, callback) => {
-      this.logger.logMessage('[Request Received]', JSON.stringify(requestEnv));
+      this.logger.logMessage("[Request Received]", JSON.stringify(requestEnv));
       lambdaHandler(requestEnv, context, (error, result) => {
-        this.logger.logMessage('[Response]', JSON.stringify(result));
-        this.sendDataToServer(requestEnv, result, IntegrationType.ALEXA_SDK).then(() => {
-          callback(error, result);
-        }).catch(() => {
-          callback(error, result);
-        });
+        this.logger.logMessage("[Response]", JSON.stringify(result));
+        this.sendDataToServer(requestEnv, result, IntegrationType.ALEXA_SDK)
+          .then(() => {
+            callback(error, result);
+          })
+          .catch(() => {
+            callback(error, result);
+          });
       });
     };
   }
@@ -65,7 +73,32 @@ class PulseLabsRecorder {
    */
 
   logData(requestBody: any, response: any): Promise<any> {
-    return this.sendDataToServer(requestBody, response, this.getIntegrationType());
+    return this.sendDataToServer(
+      requestBody,
+      response,
+      this.getIntegrationType()
+    );
+  }
+
+  /**
+   * This method is called to send request and response data to the pulselabs server.
+   * Called in case of nodejs webhook for actions on google
+   * @param requestBody -> The requestBody sent by alexa
+   * @param response -> The response sent by user
+   */
+
+  logGoogleData(
+    requestBody: any,
+    response: any,
+    userId?: string
+  ): Promise<any> {
+    return this.sendDataToServer(
+      requestBody,
+      response,
+      this.getIntegrationType(),
+      Platform.Google,
+      userId
+    );
   }
 
   /**
@@ -73,20 +106,29 @@ class PulseLabsRecorder {
    * data to the pulselabs server for google action.
    * @param conv -> a DialogFlowConversation object
    */
-  configureActionLogger(conv: DialogflowConversation) {
+  configureActionLogger(conv: DialogflowConversation, userId?: string) {
     const pulseSerialize = conv.serialize;
     conv.serialize = () => {
       const response = pulseSerialize.call(conv);
-      this.sendDataToServer(conv.body, response, IntegrationType.GOOGLE_SDK, Platform.Google);
+      this.sendDataToServer(
+        conv.body,
+        response,
+        IntegrationType.GOOGLE_SDK,
+        Platform.Google,
+        userId
+      );
       return response;
     };
   }
 
-  private sendDataToServer(request: any,
-                           response: any,
-                           integrationType: string,
-                           platform = Platform.Alexa) {
-    const date = new Date().toJSON().slice(0,10);
+  private sendDataToServer(
+    request: any,
+    response: any,
+    integrationType: string,
+    platform = Platform.Alexa,
+    userId?: string
+  ) {
+    const date = new Date().toJSON().slice(0, 10);
     let data: ServerData = {
       timeSent: Date.now(),
       date: date,
@@ -94,30 +136,39 @@ class PulseLabsRecorder {
       integration: integrationType,
       platform: platform,
       payload: {
+        userId,
         request: request,
         response: response
       }
     };
 
-    this.logger.logMessage('[Sending request and response data] ',JSON.stringify(data));
-    return this.httpService.postData(data, platform).then((res) => {
-      this.logger.logMessage('Data sent to Pulse labs server');
-      return res;
-    }).catch(error => {
-      this.logger.logMessage('Pulse labs Sdk error: ', JSON.stringify(error));
-      return error;
-    });
+    this.logger.logMessage(
+      "[Sending request and response data] ",
+      JSON.stringify(data)
+    );
+    return this.httpService
+      .postData(data, platform)
+      .then(res => {
+        this.logger.logMessage("Data sent to Pulse labs server");
+        return res;
+      })
+      .catch(error => {
+        this.logger.logMessage("Pulse labs Sdk error: ", JSON.stringify(error));
+        return error;
+      });
   }
 
   private getIntegrationType(): string {
-    let integrationType:string;
-    if(this.configService.integrationType !== '') {
+    let integrationType: string;
+    if (this.configService.integrationType !== "") {
       integrationType = this.configService.integrationType;
     } else {
-      const isHostedOnAWS = !!(process.env.LAMBDA_TASK_ROOT || process.env.AWS_EXECUTION_ENV);
+      const isHostedOnAWS = !!(
+        process.env.LAMBDA_TASK_ROOT || process.env.AWS_EXECUTION_ENV
+      );
       const isHostedOnGoogleCloud = !!process.env.GCLOUD_PROJECT;
 
-      if(isHostedOnAWS) {
+      if (isHostedOnAWS) {
         integrationType = IntegrationType.LAMBDA;
       } else if (isHostedOnGoogleCloud) {
         integrationType = IntegrationType.GOOGLE_CLOUD;
