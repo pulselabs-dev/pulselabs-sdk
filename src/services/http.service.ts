@@ -24,7 +24,10 @@ export class HttpService {
       timeout: this.configService.timeout
     });
 
-    const jsonResponse = await fetchResult.json();
+    // Based on https://github.com/node-fetch/node-fetch/pull/166 which was later reverted
+    // due to compatibility issues with other packages.
+    const jsonResponse =
+      fetchResult.status === 204 ? {} : await fetchResult.json();
 
     if (fetchResult.ok) {
       return jsonResponse;
